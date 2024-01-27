@@ -1,6 +1,9 @@
 services:
   postgres:
     image: postgres:16.0
+    build:
+      dockerfile: Dockerfile
+      context: ./services/msg-db
     restart: always
     env_file:
       - .env
