@@ -1,3 +1,3 @@
 module github.com/Buhlakay/messaging-app/msg-receive
 
-go 1.18
+go 1.21
