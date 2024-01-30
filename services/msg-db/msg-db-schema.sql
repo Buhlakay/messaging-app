@@ -9,7 +9,7 @@ CREATE TABLE messages (
   sender_id INT NOT NULL,
   receiver_id INT NOT NULL,
   body TEXT NOT NULL,
-  created_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT current_timestamp,
   FOREIGN KEY (sender_id) REFERENCES users(id),
   FOREIGN KEY (receiver_id) REFERENCES users(id)
 );

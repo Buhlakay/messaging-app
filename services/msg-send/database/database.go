@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"os"
@@ -26,17 +27,6 @@ func InitDb() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Insert test user to database
-	stmt, err := GetInstance().db.Prepare("INSERT INTO users (username, password) VALUES ($1, $2)")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = stmt.Exec(os.Getenv("SENDER_USER"), os.Getenv("SENDER_PASSWORD"))
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func GetInstance() *conn {
@@ -44,4 +34,38 @@ func GetInstance() *conn {
 		InitDb()
 	}
 	return instance
+}
+
+func WriteMessage(receiverId int64, senderUser string, body string) {
+	tx, err := GetInstance().db.BeginTx(context.Background(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer tx.Rollback()
+
+	rows, err := tx.Query("SELECT id FROM users WHERE username = ($1)", senderUser)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var userId int64
+	err = rows.Scan(&userId)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	stmt, err := tx.Prepare("INSERT INTO messages (sender_id, receiver_id, body) VALUES ($1, $2, $3)")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = stmt.Exec(userId, receiverId, body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Commit the transaction.
+	if err = tx.Commit(); err != nil {
+		log.Fatal(err)
+	}
 }

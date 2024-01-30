@@ -1,0 +1,4 @@
+#!/bin/sh
+
+psql -U $POSTGRES_USER -d $POSTGRES_DB -c "INSERT INTO users (username, password) VALUES ('$TEST_USER1_USERNAME', '$TEST_USER1_PASSWORD')"
+psql -U $POSTGRES_USER -d $POSTGRES_DB -c "INSERT INTO users (username, password) VALUES ('$TEST_USER2_USERNAME', '$TEST_USER2_PASSWORD')"

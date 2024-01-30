@@ -1,15 +1,24 @@
 package main
 
 import (
-	"io"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/Buhlakay/messaging-app/msg-send/database"
 )
 
 type sendServer struct {
 	// logf controls where logs are sent.
 	logf     func(f string, v ...interface{})
 	serveMux http.ServeMux
+}
+
+type messageFormat struct {
+	receiverId     int64
+	senderUsername string
+	body           string
 }
 
 func newSendServer() *sendServer {
@@ -32,12 +41,15 @@ func (s *sendServer) sendHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	body := http.MaxBytesReader(w, req.Body, 8192)
-	_, err := io.ReadAll(body)
+	var m messageFormat
+
+	err := json.NewDecoder(req.Body).Decode(&m)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
-		return
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
 
-	// TODO: Write to DB
+	fmt.Printf("rx id: %d, tx username: %s, body: %s", m.receiverId, m.senderUsername, m.body)
+	database.WriteMessage(m.receiverId, m.senderUsername, m.body)
+
+	w.WriteHeader(http.StatusAccepted)
 }
